@@ -1,9 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using WebApplication2.Data;
 using Week2LibraryApi.Repositories;
 using Week2LibraryApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<LibraryDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("LibraryDb")
+    ));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
