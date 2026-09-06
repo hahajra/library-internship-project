@@ -1,0 +1,87 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.container {
+  width: 90%;
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-card,
+.book-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.form-card button {
+  align-self: flex-start;
+}
+
+.book-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-button {
+  background: #d9534f;
+  color: white;
+}
+
+.loading {
+  margin-top: 20px;
+}
+
+.error {
+  color: #b00020;
+  margin-top: 20px;
+}
+.form-buttons,
+.book-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-button {
+  background: #1976d2;
+  color: white;
+}
+
+.cancel-button {
+  background: #777;
+  color: white;
+}
