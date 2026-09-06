@@ -2,25 +2,61 @@
 
 
 
-This repository contains the Library Management project developed during the AI Software Development Internship.
+This repository contains the Week 3 internship work for the Library Management project.
 
 
 
-The project continues the Week 2 ASP.NET Core Library API and Angular application and will be extended during Week 3 with SQL Server, Entity Framework Core, Angular API integration, Git/GitHub workflow, authentication foundations, and a standalone AI script.
+The project now includes a relational SQL Server database, Entity Framework Core integration, database-backed CRUD operations, Angular HTTP integration, a basic user login foundation, and an AI-powered book summary script.
 
 
 
-\## Project Structure
+\---
 
 
 
-\- backend - ASP.NET Core Library API
+\# Project Structure
 
-\- frontend - Angular frontend
 
-\- sql - SQL scripts
 
-\- docs - Internship documentation
+```text
 
-\- ai-scripts - Python AI scripts
+library-internship-project
+
+│
+
+├── backend
+
+│   └── WebApplication2
+
+│
+
+├── frontend
+
+│   └── week2-library-angular
+
+│
+
+├── sql
+
+│   └── week3-relational-schema.sql
+
+│
+
+├── docs
+
+│   └── week3-auth-notes.md
+
+│
+
+├── ai-scripts
+
+│   ├── book\_summary.py
+
+│   └── requirements.txt
+
+│
+
+├── .gitignore
+
+└── README.md
 
