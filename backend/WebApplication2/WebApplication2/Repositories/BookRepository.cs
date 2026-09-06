@@ -1,83 +1,161 @@
-﻿using Week2LibraryApi.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApplication2.Data;
+using Week2LibraryApi.Models;
 
 namespace Week2LibraryApi.Repositories
 {
     public class BookRepository : IBookRepository
     {
-        private readonly List<Book> books = new List<Book>
-        {
-            new Book
-            {
-                Id = 1,
-                Title = "C# Basics",
-                Author = "John Smith",
-                Category = "Programming"
-            },
-            new Book
-            {
-                Id = 2,
-                Title = "Learning Angular",
-                Author = "Sarah Khan",
-                Category = "Web Development"
-            },
-            new Book
-            {
-                Id = 3,
-                Title = "Database Fundamentals",
-                Author = "Ahmed Ali",
-                Category = "Database"
-            }
-        };
+        private readonly LibraryDbContext dbContext;
 
-        public List<Book> GetAll()
+        public BookRepository(LibraryDbContext dbContext)
         {
+            this.dbContext = dbContext;
+        }
+
+        public async Task<List<Book>> GetAllAsync()
+        {
+            List<Book> books = await dbContext.Books
+                .Include(book => book.AuthorEntity)
+                .Include(book => book.Categories)
+                .ToListAsync();
+
+            foreach (Book book in books)
+            {
+                book.Author = book.AuthorEntity?.FullName ?? string.Empty;
+                book.Category = string.Join(
+                    ", ",
+                    book.Categories.Select(category => category.CategoryName)
+                );
+            }
+
             return books;
         }
 
-        public Book? GetById(int id)
+        public async Task<Book?> GetByIdAsync(int id)
         {
-            return books.FirstOrDefault(book => book.Id == id);
-        }
+            Book? book = await dbContext.Books
+                .Include(book => book.AuthorEntity)
+                .Include(book => book.Categories)
+                .FirstOrDefaultAsync(book => book.BookId == id);
 
-        public Book Add(Book book)
-        {
-            int newId = books.Count == 0
-                ? 1
-                : books.Max(book => book.Id) + 1;
-
-            book.Id = newId;
-
-            books.Add(book);
+            if (book != null)
+            {
+                book.Author = book.AuthorEntity?.FullName ?? string.Empty;
+                book.Category = string.Join(
+                    ", ",
+                    book.Categories.Select(category => category.CategoryName)
+                );
+            }
 
             return book;
         }
 
-        public bool Update(Book book)
+        public async Task<Book> AddAsync(Book book)
         {
-            Book? existingBook = GetById(book.Id);
+            Author? author = await dbContext.Authors
+                .FirstOrDefaultAsync(author =>
+                    author.FullName.ToLower() == book.Author.ToLower());
+
+            if (author == null)
+            {
+                author = new Author
+                {
+                    FullName = book.Author
+                };
+
+                dbContext.Authors.Add(author);
+            }
+
+            Category? category = await dbContext.Categories
+                .FirstOrDefaultAsync(category =>
+                    category.CategoryName.ToLower() == book.Category.ToLower());
+
+            if (category == null)
+            {
+                category = new Category
+                {
+                    CategoryName = book.Category
+                };
+
+                dbContext.Categories.Add(category);
+            }
+
+            book.AuthorEntity = author;
+            book.Categories.Add(category);
+
+            dbContext.Books.Add(book);
+
+            await dbContext.SaveChangesAsync();
+
+            book.AuthorId = author.AuthorId;
+
+            return book;
+        }
+
+        public async Task<bool> UpdateAsync(Book book)
+        {
+            Book? existingBook = await dbContext.Books
+                .Include(existing => existing.AuthorEntity)
+                .Include(existing => existing.Categories)
+                .FirstOrDefaultAsync(existing => existing.BookId == book.BookId);
 
             if (existingBook == null)
             {
                 return false;
             }
 
+            Author? author = await dbContext.Authors
+                .FirstOrDefaultAsync(author =>
+                    author.FullName.ToLower() == book.Author.ToLower());
+
+            if (author == null)
+            {
+                author = new Author
+                {
+                    FullName = book.Author
+                };
+
+                dbContext.Authors.Add(author);
+            }
+
+            Category? category = await dbContext.Categories
+                .FirstOrDefaultAsync(category =>
+                    category.CategoryName.ToLower() == book.Category.ToLower());
+
+            if (category == null)
+            {
+                category = new Category
+                {
+                    CategoryName = book.Category
+                };
+
+                dbContext.Categories.Add(category);
+            }
+
             existingBook.Title = book.Title;
-            existingBook.Author = book.Author;
-            existingBook.Category = book.Category;
+            existingBook.AuthorEntity = author;
+
+            existingBook.Categories.Clear();
+            existingBook.Categories.Add(category);
+
+            await dbContext.SaveChangesAsync();
 
             return true;
         }
 
-        public bool Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            Book? book = GetById(id);
+            Book? book = await dbContext.Books.FindAsync(id);
 
             if (book == null)
             {
                 return false;
             }
 
-            books.Remove(book);
+            dbContext.Books.Remove(book);
+
+            await dbContext.SaveChangesAsync();
 
             return true;
         }

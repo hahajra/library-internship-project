@@ -4,10 +4,10 @@ namespace Week2LibraryApi.Services
 {
     public interface IBookService
     {
-        List<Book> GetAllBooks();
-        Book? GetBookById(int id);
-        Book AddBook(Book book);
-        bool UpdateBook(Book book);
-        bool DeleteBook(int id);
+        Task<List<Book>> GetAllBooksAsync();
+        Task<Book?> GetBookByIdAsync(int id);
+        Task<Book> AddBookAsync(Book book);
+        Task<bool> UpdateBookAsync(Book book);
+        Task<bool> DeleteBookAsync(int id);
     }
 }
