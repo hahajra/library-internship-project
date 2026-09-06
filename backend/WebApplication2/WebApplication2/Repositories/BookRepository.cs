@@ -23,6 +23,7 @@ namespace Week2LibraryApi.Repositories
             foreach (Book book in books)
             {
                 book.Author = book.AuthorEntity?.FullName ?? string.Empty;
+
                 book.Category = string.Join(
                     ", ",
                     book.Categories.Select(category => category.CategoryName)
@@ -42,6 +43,7 @@ namespace Week2LibraryApi.Repositories
             if (book != null)
             {
                 book.Author = book.AuthorEntity?.FullName ?? string.Empty;
+
                 book.Category = string.Join(
                     ", ",
                     book.Categories.Select(category => category.CategoryName)
@@ -146,12 +148,16 @@ namespace Week2LibraryApi.Repositories
 
         public async Task<bool> DeleteAsync(int id)
         {
-            Book? book = await dbContext.Books.FindAsync(id);
+            Book? book = await dbContext.Books
+                .Include(book => book.Categories)
+                .FirstOrDefaultAsync(book => book.BookId == id);
 
             if (book == null)
             {
                 return false;
             }
+
+            book.Categories.Clear();
 
             dbContext.Books.Remove(book);
 
