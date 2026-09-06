@@ -16,15 +16,17 @@ namespace Week2LibraryApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllBooks()
+        public async Task<IActionResult> GetAllBooks()
         {
-            return Ok(bookService.GetAllBooks());
+            List<Book> books = await bookService.GetAllBooksAsync();
+
+            return Ok(books);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetBookById(int id)
+        public async Task<IActionResult> GetBookById(int id)
         {
-            Book? book = bookService.GetBookById(id);
+            Book? book = await bookService.GetBookByIdAsync(id);
 
             if (book == null)
             {
@@ -35,7 +37,7 @@ namespace Week2LibraryApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddBook(Book book)
+        public async Task<IActionResult> AddBook(Book book)
         {
             if (string.IsNullOrWhiteSpace(book.Title) ||
                 string.IsNullOrWhiteSpace(book.Author) ||
@@ -44,17 +46,17 @@ namespace Week2LibraryApi.Controllers
                 return BadRequest("Title, Author, and Category are required.");
             }
 
-            Book createdBook = bookService.AddBook(book);
+            Book createdBook = await bookService.AddBookAsync(book);
 
             return CreatedAtAction(
                 nameof(GetBookById),
-                new { id = createdBook.Id },
+                new { id = createdBook.BookId },
                 createdBook
             );
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateBook(int id, Book book)
+        public async Task<IActionResult> UpdateBook(int id, Book book)
         {
             if (string.IsNullOrWhiteSpace(book.Title) ||
                 string.IsNullOrWhiteSpace(book.Author) ||
@@ -63,9 +65,9 @@ namespace Week2LibraryApi.Controllers
                 return BadRequest("Title, Author, and Category are required.");
             }
 
-            book.Id = id;
+            book.BookId = id;
 
-            bool updated = bookService.UpdateBook(book);
+            bool updated = await bookService.UpdateBookAsync(book);
 
             if (!updated)
             {
@@ -76,9 +78,9 @@ namespace Week2LibraryApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteBook(int id)
+        public async Task<IActionResult> DeleteBook(int id)
         {
-            bool deleted = bookService.DeleteBook(id);
+            bool deleted = await bookService.DeleteBookAsync(id);
 
             if (!deleted)
             {

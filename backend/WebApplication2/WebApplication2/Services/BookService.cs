@@ -12,29 +12,29 @@ namespace Week2LibraryApi.Services
             this.bookRepository = bookRepository;
         }
 
-        public List<Book> GetAllBooks()
+        public async Task<List<Book>> GetAllBooksAsync()
         {
-            return bookRepository.GetAll();
+            return await bookRepository.GetAllAsync();
         }
 
-        public Book? GetBookById(int id)
+        public async Task<Book?> GetBookByIdAsync(int id)
         {
-            return bookRepository.GetById(id);
+            return await bookRepository.GetByIdAsync(id);
         }
 
-        public Book AddBook(Book book)
+        public async Task<Book> AddBookAsync(Book book)
         {
-            return bookRepository.Add(book);
+            return await bookRepository.AddAsync(book);
         }
 
-        public bool UpdateBook(Book book)
+        public async Task<bool> UpdateBookAsync(Book book)
         {
-            return bookRepository.Update(book);
+            return await bookRepository.UpdateAsync(book);
         }
 
-        public bool DeleteBook(int id)
+        public async Task<bool> DeleteBookAsync(int id)
         {
-            return bookRepository.Delete(id);
+            return await bookRepository.DeleteAsync(id);
         }
     }
 }
