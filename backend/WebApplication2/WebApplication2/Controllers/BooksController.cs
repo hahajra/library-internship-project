@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Week2LibraryApi.Models;
 using Week2LibraryApi.Services;
 
@@ -36,6 +37,7 @@ namespace Week2LibraryApi.Controllers
             return Ok(book);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddBook(Book book)
         {
@@ -43,10 +45,13 @@ namespace Week2LibraryApi.Controllers
                 string.IsNullOrWhiteSpace(book.Author) ||
                 string.IsNullOrWhiteSpace(book.Category))
             {
-                return BadRequest("Title, Author, and Category are required.");
+                return BadRequest(
+                    "Title, Author, and Category are required."
+                );
             }
 
-            Book createdBook = await bookService.AddBookAsync(book);
+            Book createdBook =
+                await bookService.AddBookAsync(book);
 
             return CreatedAtAction(
                 nameof(GetBookById),
@@ -55,19 +60,25 @@ namespace Week2LibraryApi.Controllers
             );
         }
 
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, Book book)
+        public async Task<IActionResult> UpdateBook(
+            int id,
+            Book book)
         {
             if (string.IsNullOrWhiteSpace(book.Title) ||
                 string.IsNullOrWhiteSpace(book.Author) ||
                 string.IsNullOrWhiteSpace(book.Category))
             {
-                return BadRequest("Title, Author, and Category are required.");
+                return BadRequest(
+                    "Title, Author, and Category are required."
+                );
             }
 
             book.BookId = id;
 
-            bool updated = await bookService.UpdateBookAsync(book);
+            bool updated =
+                await bookService.UpdateBookAsync(book);
 
             if (!updated)
             {
@@ -77,10 +88,12 @@ namespace Week2LibraryApi.Controllers
             return Ok("Book updated successfully.");
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            bool deleted = await bookService.DeleteBookAsync(id);
+            bool deleted =
+                await bookService.DeleteBookAsync(id);
 
             if (!deleted)
             {
