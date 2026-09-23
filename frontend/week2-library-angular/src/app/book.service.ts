@@ -7,27 +7,57 @@ import { Book } from './book';
   providedIn: 'root'
 })
 export class BookService {
-  private apiUrl = 'https://localhost:7038/api/Books';
+  private readonly apiUrl =
+    'https://localhost:7038/api/Books';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient
+  ) {}
 
   getBooks(): Observable<Book[]> {
-    return this.http.get<Book[]>(this.apiUrl);
+    return this.http.get<Book[]>(
+      this.apiUrl
+    );
   }
 
-  getBookById(id: number): Observable<Book> {
-    return this.http.get<Book>(`${this.apiUrl}/${id}`);
+  getBookById(
+    id: number
+  ): Observable<Book> {
+    return this.http.get<Book>(
+      `${this.apiUrl}/${id}`
+    );
   }
 
-  addBook(book: Book): Observable<Book> {
-    return this.http.post<Book>(this.apiUrl, book);
+  addBook(
+    book: Book
+  ): Observable<Book> {
+    return this.http.post<Book>(
+      this.apiUrl,
+      book
+    );
   }
 
-  updateBook(id: number, book: Book): Observable<unknown> {
-    return this.http.put(`${this.apiUrl}/${id}`, book);
+  updateBook(
+    id: number,
+    book: Book
+  ): Observable<string> {
+    return this.http.put(
+      `${this.apiUrl}/${id}`,
+      book,
+      {
+        responseType: 'text'
+      }
+    );
   }
 
-  deleteBook(id: number): Observable<unknown> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  deleteBook(
+    id: number
+  ): Observable<string> {
+    return this.http.delete(
+      `${this.apiUrl}/${id}`,
+      {
+        responseType: 'text'
+      }
+    );
   }
 }
