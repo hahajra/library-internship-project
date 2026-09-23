@@ -1,2 +1,2 @@
 Hajra Week 4 Git Conflict Practice
-Version from Branch B
+Branch A and Branch B conflict resolved successfully.
