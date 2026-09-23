@@ -1,2 +1,2 @@
 Hajra Week 4 Git Conflict Practice
-Version from Branch A
+Version from Branch B
