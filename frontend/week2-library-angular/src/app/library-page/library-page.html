@@ -1,0 +1,124 @@
+<div class="container">
+
+  <div class="form-card">
+
+    <h2>
+      {{
+        editingBookId !== null
+          ? 'Edit Book'
+          : 'Add Book'
+      }}
+    </h2>
+
+    <input
+      type="text"
+      placeholder="Book title"
+      [(ngModel)]="newBook.title"
+    >
+
+    <input
+      type="text"
+      placeholder="Author"
+      [(ngModel)]="newBook.author"
+    >
+
+    <input
+      type="text"
+      placeholder="Category"
+      [(ngModel)]="newBook.category"
+    >
+
+    <div class="form-buttons">
+
+      <button (click)="saveBook()">
+        {{
+          editingBookId !== null
+            ? 'Update Book'
+            : 'Add Book'
+        }}
+      </button>
+
+      <button
+        *ngIf="editingBookId !== null"
+        class="cancel-button"
+        (click)="cancelEdit()"
+      >
+        Cancel
+      </button>
+
+    </div>
+
+  </div>
+
+  <p
+    class="loading"
+    *ngIf="loading"
+  >
+    Loading books...
+  </p>
+
+  <p
+    class="error"
+    *ngIf="errorMessage"
+  >
+    {{ errorMessage }}
+  </p>
+
+  <div class="book-section">
+
+    <h2>Books</h2>
+
+    <p
+      *ngIf="
+        !loading &&
+        books.length === 0
+      "
+    >
+      No books available.
+    </p>
+
+    <div
+      class="book-card"
+      *ngFor="let book of books"
+    >
+
+      <div>
+
+        <h3>{{ book.title }}</h3>
+
+        <p>
+          <strong>Author:</strong>
+          {{ book.author }}
+        </p>
+
+        <p>
+          <strong>Category:</strong>
+          {{ book.category }}
+        </p>
+
+      </div>
+
+      <div class="book-actions">
+
+        <button
+          class="edit-button"
+          (click)="editBook(book)"
+        >
+          Edit
+        </button>
+
+        <button
+          *ngIf="authService.isAdmin()"
+          class="delete-button"
+          (click)="deleteBook(book)"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

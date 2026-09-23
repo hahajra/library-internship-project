@@ -1,89 +1,24 @@
-<div class="container">
+<div class="app-header">
+
   <h1>Library Management</h1>
 
-  <div class="form-card">
-    <h2>
-      {{ editingBookId !== null ? 'Edit Book' : 'Add Book' }}
-    </h2>
+  @if (authService.isLoggedIn()) {
 
-    <input
-      type="text"
-      placeholder="Book title"
-      [(ngModel)]="newBook.title"
-    />
+    <div class="header-actions">
 
-    <input
-      type="text"
-      placeholder="Author"
-      [(ngModel)]="newBook.author"
-    />
+      <span>
+        Role:
+        {{ authService.getRole() }}
+      </span>
 
-    <input
-      type="text"
-      placeholder="Category"
-      [(ngModel)]="newBook.category"
-    />
-
-    <div class="form-buttons">
-      <button (click)="saveBook()">
-        {{ editingBookId !== null ? 'Update Book' : 'Add Book' }}
+      <button (click)="logout()">
+        Logout
       </button>
 
-      <button
-        *ngIf="editingBookId !== null"
-        class="cancel-button"
-        (click)="cancelEdit()"
-      >
-        Cancel
-      </button>
     </div>
-  </div>
 
-  <p class="loading" *ngIf="loading">
-    Loading books...
-  </p>
+  }
 
-  <p class="error" *ngIf="errorMessage">
-    {{ errorMessage }}
-  </p>
-
-  <div class="book-section">
-    <h2>Books</h2>
-
-    <p *ngIf="!loading && books.length === 0">
-      No books available.
-    </p>
-
-    <div class="book-card" *ngFor="let book of books">
-      <div>
-        <h3>{{ book.title }}</h3>
-
-        <p>
-          <strong>Author:</strong>
-          {{ book.author }}
-        </p>
-
-        <p>
-          <strong>Category:</strong>
-          {{ book.category }}
-        </p>
-      </div>
-
-      <div class="book-actions">
-        <button
-          class="edit-button"
-          (click)="editBook(book)"
-        >
-          Edit
-        </button>
-
-        <button
-          class="delete-button"
-          (click)="deleteBook(book)"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
+
+<router-outlet></router-outlet>

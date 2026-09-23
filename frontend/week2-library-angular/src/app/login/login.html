@@ -1,0 +1,45 @@
+<div class="login-container">
+
+  <div class="login-card">
+
+    <h2>Library Login</h2>
+
+    <form
+      [formGroup]="loginForm"
+      (ngSubmit)="login()"
+    >
+
+      <input
+        type="text"
+        placeholder="Username"
+        formControlName="username"
+      >
+
+      <input
+        type="password"
+        placeholder="Password"
+        formControlName="password"
+      >
+
+      <button
+        type="submit"
+        [disabled]="loading"
+      >
+        {{
+          loading
+            ? 'Logging in...'
+            : 'Login'
+        }}
+      </button>
+
+    </form>
+
+    @if (errorMessage) {
+      <p class="error">
+        {{ errorMessage }}
+      </p>
+    }
+
+  </div>
+
+</div>
