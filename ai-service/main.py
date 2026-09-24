@@ -1,10 +1,12 @@
 import json
 import os
 
+import chromadb
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from sentence_transformers import SentenceTransformer
 
 
 load_dotenv()
@@ -13,7 +15,7 @@ load_dotenv()
 app = FastAPI(
     title="Library AI Service",
     description="FastAPI AI service for Hajra's Library Internship Project",
-    version="1.2.0"
+    version="1.3.0"
 )
 
 
@@ -26,6 +28,28 @@ OPENROUTER_URL = (
 )
 
 MODEL_NAME = "openrouter/free"
+
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+
+CHROMA_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "library_chroma_db"
+)
+
+
+embedding_model = SentenceTransformer(
+    EMBEDDING_MODEL_NAME
+)
+
+chroma_client = chromadb.PersistentClient(
+    path=CHROMA_PATH
+)
+
+library_collection = (
+    chroma_client.get_or_create_collection(
+        name="real_library_books"
+    )
+)
 
 
 class SummaryRequest(BaseModel):
@@ -70,6 +94,19 @@ class GenreResponse(BaseModel):
     suggested_genre: str
 
 
+class AskRequest(BaseModel):
+    question: str = Field(
+        min_length=3,
+        description="Question about books in the library"
+    )
+
+
+class AskResponse(BaseModel):
+    answer: str
+    sources: list[str]
+    model: str
+
+
 def parse_llm_response(
     content: str
 ) -> dict:
@@ -93,7 +130,8 @@ def parse_llm_response(
         raise HTTPException(
             status_code=502,
             detail={
-                "message": "LLM response is missing a valid summary."
+                "message":
+                    "LLM response is missing a valid summary."
             }
         )
 
@@ -101,7 +139,8 @@ def parse_llm_response(
         raise HTTPException(
             status_code=502,
             detail={
-                "message": "LLM response is missing valid key_points."
+                "message":
+                    "LLM response is missing valid key_points."
             }
         )
 
@@ -117,7 +156,8 @@ def parse_llm_response(
 @app.get("/")
 def root():
     return {
-        "message": "Library AI Service is running."
+        "message":
+            "Library AI Service is running."
     }
 
 
@@ -125,7 +165,8 @@ def root():
 def health_check():
     return {
         "status": "healthy",
-        "service": "library-ai-service"
+        "service": "library-ai-service",
+        "version": app.version
     }
 
 
@@ -207,7 +248,8 @@ Summarize the following text:
                 status_code=502,
                 detail={
                     "message": "LLM request failed.",
-                    "provider_status": response.status_code
+                    "provider_status":
+                        response.status_code
                 }
             )
 
@@ -334,3 +376,157 @@ def suggest_genre(
         title=request.title,
         suggested_genre=genre
     )
+
+
+@app.post(
+    "/ask",
+    response_model=AskResponse
+)
+async def ask_library(
+    request: AskRequest
+):
+
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="OPENROUTER_API_KEY is missing."
+        )
+
+    if library_collection.count() == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="No books are indexed in the library."
+        )
+
+    query_embedding = embedding_model.encode(
+        [request.question]
+    ).tolist()
+
+    result_count = min(
+        3,
+        library_collection.count()
+    )
+
+    results = library_collection.query(
+        query_embeddings=query_embedding,
+        n_results=result_count
+    )
+
+    documents = results.get(
+        "documents",
+        [[]]
+    )[0]
+
+    if not documents:
+        raise HTTPException(
+            status_code=404,
+            detail="No relevant library information was found."
+        )
+
+    context = "\n".join(
+        documents
+    )
+
+    system_prompt = """
+You are a library assistant.
+
+Answer the user's question using ONLY the
+library context provided to you.
+
+Do not invent book titles, authors, categories,
+or other information.
+
+If the available context does not contain enough
+information to answer the question, say:
+
+"The available library information is not sufficient."
+"""
+
+    user_prompt = f"""
+Library context:
+
+{context}
+
+Question:
+
+{request.question}
+"""
+
+    payload = {
+        "model": MODEL_NAME,
+        "temperature": 0.2,
+        "max_tokens": 200,
+        "messages": [
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": user_prompt
+            }
+        ]
+    }
+
+    headers = {
+        "Authorization":
+            f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type":
+            "application/json"
+    }
+
+    try:
+        async with httpx.AsyncClient(
+            timeout=60.0
+        ) as client:
+
+            response = await client.post(
+                OPENROUTER_URL,
+                headers=headers,
+                json=payload
+            )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "message":
+                        "LLM request failed.",
+                    "provider_status":
+                        response.status_code
+                }
+            )
+
+        data = response.json()
+
+        try:
+            answer = (
+                data["choices"][0]
+                ["message"]["content"]
+            ).strip()
+
+        except (
+            KeyError,
+            IndexError,
+            TypeError
+        ):
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "message":
+                        "LLM provider returned an unexpected response structure."
+                }
+            )
+
+        return AskResponse(
+            answer=answer,
+            sources=documents,
+            model=MODEL_NAME
+        )
+
+    except httpx.RequestError as error:
+        raise HTTPException(
+            status_code=503,
+            detail=
+                f"Could not reach LLM provider: {error}"
+        )
