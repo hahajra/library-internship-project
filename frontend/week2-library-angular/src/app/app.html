@@ -1,17 +1,31 @@
 <div class="app-header">
 
-  <h1>Library Management</h1>
+  <h1>
+    Library Management
+  </h1>
+
 
   @if (authService.isLoggedIn()) {
 
     <div class="header-actions">
+
+      <button
+        (click)="goToLibrary()">
+        Library
+      </button>
+
+      <button
+        (click)="goToAssistant()">
+        AI Assistant
+      </button>
 
       <span>
         Role:
         {{ authService.getRole() }}
       </span>
 
-      <button (click)="logout()">
+      <button
+        (click)="logout()">
         Logout
       </button>
 
@@ -21,4 +35,5 @@
 
 </div>
 
-<router-outlet></router-outlet>
+<router-outlet>
+</router-outlet>

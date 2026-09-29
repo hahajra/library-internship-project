@@ -1,11 +1,16 @@
-import { Component } from '@angular/core';
+import {
+  Component
+} from '@angular/core';
 
 import {
   Router,
   RouterOutlet
 } from '@angular/router';
 
-import { AuthService } from './auth.service';
+import {
+  AuthService
+} from './auth.service';
+
 
 @Component({
   selector: 'app-root',
@@ -15,14 +20,36 @@ import { AuthService } from './auth.service';
     RouterOutlet
   ],
 
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  templateUrl:
+    './app.html',
+
+  styleUrl:
+    './app.css'
 })
 export class App {
+
   constructor(
-    public authService: AuthService,
-    private router: Router
+    public authService:
+      AuthService,
+
+    private router:
+      Router
   ) {}
+
+
+  goToLibrary(): void {
+    this.router.navigate([
+      '/'
+    ]);
+  }
+
+
+  goToAssistant(): void {
+    this.router.navigate([
+      '/assistant'
+    ]);
+  }
+
 
   logout(): void {
     this.authService.logout();

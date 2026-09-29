@@ -13,86 +13,126 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<LibraryDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("LibraryDb")
-    ));
+builder.Services.AddDbContext<LibraryDbContext>(
+    options =>
+        options.UseSqlServer(
+            builder.Configuration
+                .GetConnectionString(
+                    "LibraryDb"
+                )
+        )
+);
 
 builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        string key =
-            builder.Configuration["Jwt:Key"]
-            ?? throw new InvalidOperationException(
-                "JWT key is missing."
-            );
+    .AddAuthentication(
+        JwtBearerDefaults
+            .AuthenticationScheme
+    )
+    .AddJwtBearer(
+        options =>
+        {
+            string key =
+                builder.Configuration[
+                    "Jwt:Key"
+                ]
+                ?? throw new
+                    InvalidOperationException(
+                        "JWT key is missing."
+                    );
 
-        options.TokenValidationParameters =
-            new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
+            options.TokenValidationParameters =
+                new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey =
+                        true,
 
-                IssuerSigningKey =
-                    new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(key)
-                    ),
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(
+                            Encoding.UTF8
+                                .GetBytes(key)
+                        ),
 
-                ValidateIssuer = true,
+                    ValidateIssuer =
+                        true,
 
-                ValidIssuer =
-                    builder.Configuration["Jwt:Issuer"],
+                    ValidIssuer =
+                        builder.Configuration[
+                            "Jwt:Issuer"
+                        ],
 
-                ValidateAudience = true,
+                    ValidateAudience =
+                        true,
 
-                ValidAudience =
-                    builder.Configuration["Jwt:Audience"],
+                    ValidAudience =
+                        builder.Configuration[
+                            "Jwt:Audience"
+                        ],
 
-                ValidateLifetime = true,
+                    ValidateLifetime =
+                        true,
 
-                ClockSkew = TimeSpan.Zero
-            };
-    });
+                    ClockSkew =
+                        TimeSpan.Zero
+                };
+        }
+    );
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddEndpointsApiExplorer();
+builder.Services
+    .AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
-{
-    options.AddSecurityDefinition(
-        "Bearer",
-        new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Type = SecuritySchemeType.Http,
-            Scheme = "bearer",
-            BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "Enter your JWT token."
-        }
-    );
-
-    options.AddSecurityRequirement(
-        new OpenApiSecurityRequirement
-        {
+builder.Services.AddSwaggerGen(
+    options =>
+    {
+        options.AddSecurityDefinition(
+            "Bearer",
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference =
-                        new OpenApiReference
-                        {
-                            Type =
-                                ReferenceType
-                                    .SecurityScheme,
-                            Id = "Bearer"
-                        }
-                },
-                Array.Empty<string>()
+                Name =
+                    "Authorization",
+
+                Type =
+                    SecuritySchemeType.Http,
+
+                Scheme =
+                    "bearer",
+
+                BearerFormat =
+                    "JWT",
+
+                In =
+                    ParameterLocation.Header,
+
+                Description =
+                    "Enter your JWT token."
             }
-        }
-    );
-});
+        );
+
+        options.AddSecurityRequirement(
+            new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference =
+                            new OpenApiReference
+                            {
+                                Type =
+                                    ReferenceType
+                                        .SecurityScheme,
+
+                                Id =
+                                    "Bearer"
+                            }
+                    },
+
+                    Array.Empty<string>()
+                }
+            }
+        );
+    }
+);
 
 builder.Services.AddScoped<
     IBookRepository,
@@ -108,20 +148,26 @@ builder.Services
     .AddHttpClient<
         IAiServiceClient,
         AiServiceClient
-    >(client =>
-    {
-        string baseUrl =
-            builder.Configuration[
-                "AiService:BaseUrl"
-            ]
-            ?? "http://127.0.0.1:8000/";
+    >(
+        client =>
+        {
+            string baseUrl =
+                builder.Configuration[
+                    "AiService:BaseUrl"
+                ]
+                ?? "http://127.0.0.1:8000/";
 
-        client.BaseAddress =
-            new Uri(baseUrl);
+            client.BaseAddress =
+                new Uri(
+                    baseUrl
+                );
 
-        client.Timeout =
-            TimeSpan.FromSeconds(25);
-    })
+            client.Timeout =
+                TimeSpan.FromSeconds(
+                    25
+                );
+        }
+    )
     .AddPolicyHandler(
         HttpPolicyExtensions
             .HandleTransientHttpError()
@@ -159,7 +205,9 @@ builder.Services
                     3,
 
                 durationOfBreak:
-                    TimeSpan.FromSeconds(30),
+                    TimeSpan.FromSeconds(
+                        30
+                    ),
 
                 onBreak:
                     (
@@ -182,21 +230,43 @@ builder.Services
             )
     );
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(
-        "AngularApp",
-        policy =>
-        {
-            policy
-                .WithOrigins(
-                    "http://localhost:4200"
-                )
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        }
-    );
-});
+builder.Services.AddHttpClient(
+    "AiStreamingClient",
+    client =>
+    {
+        string baseUrl =
+            builder.Configuration[
+                "AiService:BaseUrl"
+            ]
+            ?? "http://127.0.0.1:8000/";
+
+        client.BaseAddress =
+            new Uri(
+                baseUrl
+            );
+
+        client.Timeout =
+            Timeout.InfiniteTimeSpan;
+    }
+);
+
+builder.Services.AddCors(
+    options =>
+    {
+        options.AddPolicy(
+            "AngularApp",
+            policy =>
+            {
+                policy
+                    .WithOrigins(
+                        "http://localhost:4200"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            }
+        );
+    }
+);
 
 var app = builder.Build();
 
@@ -209,7 +279,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AngularApp");
+app.UseCors(
+    "AngularApp"
+);
 
 app.UseAuthentication();
 

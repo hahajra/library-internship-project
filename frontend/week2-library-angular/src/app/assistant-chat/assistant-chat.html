@@ -1,0 +1,192 @@
+<div class="assistant-page">
+
+  <section class="assistant-card">
+
+    <div class="assistant-heading">
+
+      <div>
+        <p class="eyebrow">
+          WEEK 6 AI
+        </p>
+
+        <h2>
+          Library AI Assistant
+        </h2>
+
+        <p class="description">
+          Ask a question about the library
+          and watch the answer stream live.
+        </p>
+      </div>
+
+      @if (isStreaming) {
+        <span class="streaming-badge">
+          Streaming...
+        </span>
+      }
+
+    </div>
+
+
+    <div class="question-section">
+
+      <label for="question">
+        Question
+      </label>
+
+      <textarea
+        id="question"
+        [(ngModel)]="question"
+        [disabled]="isStreaming"
+        placeholder="Example: Who wrote React Essentials?"
+        rows="4">
+      </textarea>
+
+    </div>
+
+
+    <div class="settings-row">
+
+      <label for="delay">
+        Demo delay
+      </label>
+
+      <select
+        id="delay"
+        [(ngModel)]="delayMs"
+        [disabled]="isStreaming">
+
+        <option [ngValue]="0">
+          No artificial delay
+        </option>
+
+        <option [ngValue]="100">
+          100 ms
+        </option>
+
+        <option [ngValue]="150">
+          150 ms
+        </option>
+
+        <option [ngValue]="300">
+          300 ms
+        </option>
+
+        <option [ngValue]="500">
+          500 ms
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="button-row">
+
+      <button
+        class="primary-button"
+        (click)="askQuestion()"
+        [disabled]="isStreaming || !question.trim()">
+
+        @if (isStreaming) {
+          Streaming...
+        }
+        @else {
+          Ask AI
+        }
+
+      </button>
+
+
+      @if (isStreaming) {
+
+        <button
+          class="stop-button"
+          (click)="stopStreaming()">
+
+          Stop
+
+        </button>
+
+      }
+
+
+      <button
+        class="secondary-button"
+        (click)="clearChat()">
+
+        Clear
+
+      </button>
+
+    </div>
+
+
+    @if (errorMessage) {
+
+      <div class="error-box">
+        {{ errorMessage }}
+      </div>
+
+    }
+
+
+    @if (answer || isStreaming) {
+
+      <section class="answer-section">
+
+        <div class="answer-header">
+
+          <h3>
+            Answer
+          </h3>
+
+          @if (isStreaming) {
+            <span class="live-dot">
+              Live
+            </span>
+          }
+
+        </div>
+
+        <div class="answer-content">
+          {{ answer }}
+
+          @if (isStreaming) {
+            <span class="cursor">
+              |
+            </span>
+          }
+        </div>
+
+      </section>
+
+    }
+
+
+    @if (sources.length > 0) {
+
+      <section class="sources-section">
+
+        <h3>
+          Sources
+        </h3>
+
+        @for (
+          source of sources;
+          track source
+        ) {
+
+          <div class="source-item">
+            {{ source }}
+          </div>
+
+        }
+
+      </section>
+
+    }
+
+  </section>
+
+</div>

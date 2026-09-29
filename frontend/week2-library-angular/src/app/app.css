@@ -85,3 +85,22 @@ button {
   background: #777;
   color: white;
 }
+
+.app-header {
+  position: relative;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.header-actions {
+  position: relative;
+  z-index: 1001;
+  pointer-events: auto;
+}
+
+.header-actions button {
+  position: relative;
+  z-index: 1002;
+  pointer-events: auto;
+  cursor: pointer;
+}
