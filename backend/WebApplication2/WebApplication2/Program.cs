@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
 using WebApplication2.Data;
 using Week2LibraryApi.Repositories;
 using Week2LibraryApi.Services;
@@ -20,7 +22,8 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        string key = builder.Configuration["Jwt:Key"]
+        string key =
+            builder.Configuration["Jwt:Key"]
             ?? throw new InvalidOperationException(
                 "JWT key is missing."
             );
@@ -76,11 +79,14 @@ builder.Services.AddSwaggerGen(options =>
             {
                 new OpenApiSecurityScheme
                 {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
+                    Reference =
+                        new OpenApiReference
+                        {
+                            Type =
+                                ReferenceType
+                                    .SecurityScheme,
+                            Id = "Bearer"
+                        }
                 },
                 Array.Empty<string>()
             }
@@ -88,8 +94,93 @@ builder.Services.AddSwaggerGen(options =>
     );
 });
 
-builder.Services.AddScoped<IBookRepository, BookRepository>();
-builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<
+    IBookRepository,
+    BookRepository
+>();
+
+builder.Services.AddScoped<
+    IBookService,
+    BookService
+>();
+
+builder.Services
+    .AddHttpClient<
+        IAiServiceClient,
+        AiServiceClient
+    >(client =>
+    {
+        string baseUrl =
+            builder.Configuration[
+                "AiService:BaseUrl"
+            ]
+            ?? "http://127.0.0.1:8000/";
+
+        client.BaseAddress =
+            new Uri(baseUrl);
+
+        client.Timeout =
+            TimeSpan.FromSeconds(25);
+    })
+    .AddPolicyHandler(
+        HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(
+                retryCount: 3,
+
+                sleepDurationProvider:
+                    retryAttempt =>
+                        TimeSpan.FromSeconds(
+                            Math.Pow(
+                                2,
+                                retryAttempt
+                            )
+                        ),
+
+                onRetry:
+                    (
+                        outcome,
+                        delay,
+                        retryAttempt,
+                        context
+                    ) =>
+                    {
+                        Console.WriteLine(
+                            $"AI retry {retryAttempt} after {delay.TotalSeconds} seconds."
+                        );
+                    }
+            )
+    )
+    .AddPolicyHandler(
+        HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .CircuitBreakerAsync(
+                handledEventsAllowedBeforeBreaking:
+                    3,
+
+                durationOfBreak:
+                    TimeSpan.FromSeconds(30),
+
+                onBreak:
+                    (
+                        outcome,
+                        breakDelay
+                    ) =>
+                    {
+                        Console.WriteLine(
+                            $"AI circuit opened for {breakDelay.TotalSeconds} seconds."
+                        );
+                    },
+
+                onReset:
+                    () =>
+                    {
+                        Console.WriteLine(
+                            "AI circuit reset."
+                        );
+                    }
+            )
+    );
 
 builder.Services.AddCors(options =>
 {
@@ -98,7 +189,9 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:4200")
+                .WithOrigins(
+                    "http://localhost:4200"
+                )
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         }
